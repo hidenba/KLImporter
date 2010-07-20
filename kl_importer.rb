@@ -21,7 +21,7 @@ class KLImporter
   end
 
   def to_csv(file_name, header=[])
-    csv = FasterCSV.open(file_name, "w") #do |csv|
+    csv = FasterCSV.open(file_name, "w")
     csv << header unless header.empty?
     if block_given?
       @contents.each do |c|
@@ -85,7 +85,7 @@ class WorkRecord
     times=[]
     NAMES.each do |k,v|
       if eval("#{k.to_s}?")
-        times << WorkTime.new(makeDateTime(v.first),makeDateTime(v.last)) 
+        times << WorkTime.new(make_date_time(v.first),make_date_time(v.last)) 
       end
     end
     times
@@ -96,7 +96,7 @@ class WorkRecord
     v = !val.nil? && !val.empty?
     instance_eval("def #{sym.to_s}?; #{v}; end")
   end
-  def makeDateTime(time_str) 
+  def make_date_time(time_str) 
     hh,mm = time_str.split(":")
     DateTime.new(@date.year, @date.month, @date.day, hh.to_i, mm.to_i)
   end
