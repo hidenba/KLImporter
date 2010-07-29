@@ -63,8 +63,8 @@ end
 class WorkRecord
   WorkTime = Struct.new(:start, :end)
   NAMES = ActiveSupport::OrderedHash.new
-    NAMES[:morning] = %w[9:30 10:00]
-    NAMES[:first]   = %w[10:00 12:00]
+    NAMES[:morning] = %w[10:00 10:30]
+    NAMES[:first]   = %w[10:30 12:30]
     NAMES[:second]  = %w[13:30 15:30]
     NAMES[:third]   = %w[16:00 18:00]
     NAMES[:evening] = %w[18:00 18:30]
