@@ -134,24 +134,25 @@ if $0 == __FILE__
     end
   end
 
-  input_data = FasterCSV.read(OPTS[:i])
-  user = {}
-  input_data.each do |line|
-    user[line[4]] ||= Array.new
-    user[line[4]] << line
+  csv_data = FasterCSV.read(OPTS[:i])
+  users = {}
+  csv_data.each do |line|
+    user_name = line[4]
+    users[user_name] ||= []
+    users[user_name] << line
   end
-  user.delete(nil)
+  users.delete(nil)
 
   HEADER = %w[taskId TODOタイトル TODO内容 TODO開始日付 TODO終了日付 TODOステータス TODO評価、TODO中断・中止理由 作業ログ開始日付 作業ログ終了日付 作業ログ種類 作業ログ内容]
   DATE_FORMAT = "%Y/%m/%d %H:%M:%S"
-  user.each do |k,v|
-    kl = KLImporter.new(input_data.first,v,"#{OPTS[:y]}/#{OPTS[:m]}")
-    kl.to_csv("(#{k})#{OPTS[:o]}", HEADER) do |c,t|
+  users.each do |user_name, csv_line|
+    task_id = csv_data.first
+    kl = KLImporter.new(task_id, csv_line, "#{OPTS[:y]}/#{OPTS[:m]}")
+    kl.to_csv("#{OPTS[:o]}(#{user_name})", HEADER) do |c, t|
       st = t.start.strftime(DATE_FORMAT)
       et = t.end.strftime(DATE_FORMAT)
-      [c.task_id,c.todo_name,'','','','','',st,et,c.type_code,c.detail]
+      [c.task_id, c.todo_name, '', '', '', '', '', st, et, c.type_code, c.detail]
     end
   end
 
 end
-
