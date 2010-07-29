@@ -121,13 +121,17 @@ end
 
 if $0 == __FILE__
   require 'optparse'
-  OPTS = { }
+  OPTS = {}
   OptionParser.new do |opt|
     opt.on('-i VAL:入力となるCSVファイルを指定する') {|v| OPTS[:i] = v }
     opt.on('-y VAL:対象年を指定する') {|v| OPTS[:y] = v }
     opt.on('-m VAL:対象付きを指定する') {|v| OPTS[:m] = v }
     opt.on('-o VAL:出力ファイルを指定する') {|v| OPTS[:o] = v }
     opt.parse!
+    if OPTS.empty?
+      puts opt.help
+      exit 1
+    end
   end
 
   input_data = FasterCSV.read(OPTS[:i])
