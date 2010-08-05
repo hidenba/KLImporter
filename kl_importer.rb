@@ -7,16 +7,17 @@ require 'active_support'
 
 class KLImporter
   attr_reader :contents
-  def initialize(header,line_data,yyyymm)
+
+  def initialize(header, line_data, yyyymm)
     @contents = []
     d = Splitter::date(yyyymm, header)
     line_data.each do |l|
       content, records = Splitter::split(l)
       rd = []
-      Splitter::record(records).each_with_index do |r,ix|
-        rd << WorkRecord.new(r,d[ix])
+      Splitter::record(records).each_with_index do |r, index|
+        rd << WorkRecord.new(r, d[index])
       end
-      @contents << WorkContent.new(content,rd)
+      @contents << WorkContent.new(content, rd)
     end
   end
 
@@ -27,7 +28,7 @@ class KLImporter
       @contents.each do |c|
         c.records.each do |rs|
           rs.work_times.each do |t|
-            csv << yield(c,t)
+            csv << yield(c, t)
           end
         end
       end
@@ -39,21 +40,22 @@ end
 
 class WorkContent
   TYPE_TABLE = { 
-    '計画 ( 設計 )'=>1,
-    '開発'=>2,
-    'テスト'=>3,
-    'デモ ( 準備、実施 )'=>4,
-    'デバッグ'=>5,
-    '保守'=>6,
-    'メール・KL チェック'=>7,
-    '会議'=>8,
-    '移動'=>9,
-    '教育'=>10,
-    '事務 ( 報告 )'=>11,
-    'その他'=>12,
+    '計画 ( 設計 )' => 1,
+    '開発' => 2,
+    'テスト' => 3,
+    'デモ ( 準備、実施 )' => 4,
+    'デバッグ' => 5,
+    '保守'=> 6,
+    'メール・KL チェック' => 7,
+    '会議' => 8,
+    '移動' => 9,
+    '教育' => 10,
+    '事務 ( 報告 )' => 11,
+    'その他' => 12,
   }
-  attr_accessor :task_id,:todo_name,:type,:detail,:records,:type_code
-  def initialize(content,records)
+  attr_accessor :task_id, :todo_name, :type, :detail, :records, :type_code
+
+  def initialize(content, records)
     @task_id, @todo_name, @type, @detail = content
     @records = records.delete_if { |v| v.empty? } 
     @type_code = TYPE_TABLE[@type]
@@ -70,9 +72,9 @@ class WorkRecord
     NAMES[:evening] = %w[18:00 18:30]
 
   attr_reader :date
-  def initialize(record,date)
-    NAMES.keys.each_with_index do |sym,i|
-      add_method(sym, record[i])
+  def initialize(record, date)
+    NAMES.keys.each_with_index do |sym, index|
+      add_method(sym, record[index])
     end
     @date = date
   end
@@ -83,9 +85,9 @@ class WorkRecord
 
   def work_times
     times=[]
-    NAMES.each do |k,v|
+    NAMES.each do |k, v|
       if eval("#{k.to_s}?")
-        times << WorkTime.new(make_date_time(v.first),make_date_time(v.last)) 
+        times << WorkTime.new(make_date_time(v.first), make_date_time(v.last)) 
       end
     end
     times
@@ -96,8 +98,9 @@ class WorkRecord
     v = !val.nil? && !val.empty?
     instance_eval("def #{sym.to_s}?; #{v}; end")
   end
+
   def make_date_time(time_str) 
-    hh,mm = time_str.split(":")
+    hh, mm = time_str.split(":")
     DateTime.new(@date.year, @date.month, @date.day, hh.to_i, mm.to_i)
   end
 end
@@ -106,13 +109,16 @@ module Splitter
   RECORD_OFFSET = 5
   DATE_OFFSET = 5
   CONTENT_SIZE = 4
+
   class << self
     def split(line)
       [line.shift(CONTENT_SIZE), line[1..line.size]]
     end
+
     def record(time_box)
       time_box.each_slice(RECORD_OFFSET).select { |t| t.size == RECORD_OFFSET}
     end
+
     def date(yymm, line)
       line[DATE_OFFSET..line.size].compact.delete_if { |v| v.empty? }.map{ |v|  Date.parse("#{yymm}/#{v}")}
     end
