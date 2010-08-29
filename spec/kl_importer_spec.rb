@@ -33,13 +33,8 @@ describe KLImporter do
       line_data[1].should eql "todo_name"
       line_data[2].should eql "type"
       line_data[3].should eql "detail"
-<<<<<<< HEAD
       line_data[4].should eql "Wed Jun 02 10:00:00 +0900 2010"
       line_data[5].should eql "Wed Jun 02 10:30:00 +0900 2010"
-=======
-      line_data[4].should eql "2010-06-02T10:00:00+00:00"
-      line_data[5].should eql "2010-06-02T10:30:00+00:00"
->>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
 
     it "ヘッダが出力されていること" do 
@@ -172,26 +167,16 @@ describe WorkRecord do
     it "朝会の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['o','','','','',''], @date)
       actual = @target.work_times
-<<<<<<< HEAD
       actual.first.start.to_s.should eql "Tue Jun 08 10:00:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
-=======
-      actual.first.start.to_s.should eql "2010-06-08T10:00:00+00:00"
-      actual.first.end.to_s.should eql "2010-06-08T10:30:00+00:00"
->>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
 
     it "1コマ目の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['','o','','','',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
-<<<<<<< HEAD
       actual.first.start.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 12:30:00 +0900 2010"
-=======
-      actual.first.start.to_s.should eql "2010-06-08T10:30:00+00:00"
-      actual.first.end.to_s.should eql "2010-06-08T12:30:00+00:00"
->>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
 
     it "2コマ目の開始終了時刻が取得出来ていること" do 
@@ -227,7 +212,6 @@ describe WorkRecord do
   end
 end  
 
-<<<<<<< HEAD
 describe KLTime do 
   before do 
     @date = Time.mktime(2010,6,8)
@@ -240,9 +224,6 @@ describe KLTime do
   end
 end
 
-
-=======
->>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
 describe WorkContent do 
   context ".new" do 
     before do 
