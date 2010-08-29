@@ -7,16 +7,17 @@ require 'active_support'
 
 class KLImporter
   attr_reader :contents
-  def initialize(header,line_data,yyyymm)
+
+  def initialize(header, line_data, yyyymm)
     @contents = []
     d = Splitter::date(yyyymm, header)
     line_data.each do |l|
       content, records = Splitter::split(l)
       rd = []
-      Splitter::record(records).each_with_index do |r,ix|
-        rd << WorkRecord.new(r,d[ix])
+      Splitter::record(records).each_with_index do |r, index|
+        rd << WorkRecord.new(r, d[index])
       end
-      @contents << WorkContent.new(content,rd)
+      @contents << WorkContent.new(content, rd)
     end
   end
 
@@ -27,7 +28,7 @@ class KLImporter
       @contents.each do |c|
         c.records.each do |rs|
           rs.work_times.each do |t|
-            csv << yield(c,t)
+            csv << yield(c, t)
           end
         end
       end
@@ -39,21 +40,22 @@ end
 
 class WorkContent
   TYPE_TABLE = { 
-    '計画 ( 設計 )'=>1,
-    '開発'=>2,
-    'テスト'=>3,
-    'デモ ( 準備、実施 )'=>4,
-    'デバッグ'=>5,
-    '保守'=>6,
-    'メール・KL チェック'=>7,
-    '会議'=>8,
-    '移動'=>9,
-    '教育'=>10,
-    '事務 ( 報告 )'=>11,
-    'その他'=>12,
+    '計画 ( 設計 )' => 1,
+    '開発' => 2,
+    'テスト' => 3,
+    'デモ ( 準備、実施 )' => 4,
+    'デバッグ' => 5,
+    '保守'=> 6,
+    'メール・KL チェック' => 7,
+    '会議' => 8,
+    '移動' => 9,
+    '教育' => 10,
+    '事務 ( 報告 )' => 11,
+    'その他' => 12,
   }
-  attr_accessor :task_id,:todo_name,:type,:detail,:records,:type_code
-  def initialize(content,records)
+  attr_accessor :task_id, :todo_name, :type, :detail, :records, :type_code
+
+  def initialize(content, records)
     @task_id, @todo_name, @type, @detail = content
     @records = records.delete_if { |v| v.empty? } 
     @type_code = TYPE_TABLE[@type]
@@ -71,9 +73,9 @@ class WorkRecord
     NAMES[:orver_time] = %w[18:30]
 
   attr_reader :date
-  def initialize(record,date)
-    NAMES.keys.each_with_index do |sym,i|
-      add_method(sym, record[i])
+  def initialize(record, date)
+    NAMES.keys.each_with_index do |sym, index|
+      add_method(sym, record[index])
     end
     @date = date
   end
@@ -84,7 +86,7 @@ class WorkRecord
 
   def work_times
     times=[]
-    NAMES.each do |k,v|
+    NAMES.each do |k, v|
       if eval("#{k.to_s}?")
         e = k == :orver_time ? KLTime.orvertime(@date,v.last,orver_time) : KLTime.make_time(@date,v.last)
         times << WorkTime.new(KLTime.make_time(@date,v.first), e) 
@@ -119,13 +121,16 @@ module Splitter
   RECORD_OFFSET = 6
   DATE_OFFSET = 5
   CONTENT_SIZE = 4
+
   class << self
     def split(line)
       [line.shift(CONTENT_SIZE), line[1..line.size]]
     end
+
     def record(time_box)
       time_box.each_slice(RECORD_OFFSET).select { |t| t.size == RECORD_OFFSET}
     end
+
     def date(yymm, line)
       line[DATE_OFFSET..line.size].compact.delete_if { |v| v.empty? }.map{ |v|  Date.parse("#{yymm}/#{v}")}
     end
@@ -147,9 +152,9 @@ if $0 == __FILE__
     end
   end
 
-  csv_data = FasterCSV.read(OPTS[:i])
+  in_csv = FasterCSV.read(OPTS[:i])
   users = {}
-  csv_data.each do |line|
+  in_csv.each do |line|
     user_name = line[4]
     users[user_name] ||= []
     users[user_name] << line
@@ -159,7 +164,7 @@ if $0 == __FILE__
   HEADER = %w[taskId TODOタイトル TODO内容 TODO開始日付 TODO終了日付 TODOステータス TODO評価、TODO中断・中止理由 作業ログ開始日付 作業ログ終了日付 作業ログ種類 作業ログ内容]
   DATE_FORMAT = "%Y/%m/%d %H:%M:%S"
   users.each do |user_name, csv_line|
-    task_id = csv_data.first
+    task_id = in_csv.first
     kl = KLImporter.new(task_id, csv_line, "#{OPTS[:y]}/#{OPTS[:m]}")
     kl.to_csv("#{OPTS[:o]}(#{user_name})", HEADER) do |c, t|
       st = t.start.strftime(DATE_FORMAT)
@@ -167,5 +172,4 @@ if $0 == __FILE__
       [c.task_id, c.todo_name, '', '', '', '', '', st, et, c.type_code, c.detail]
     end
   end
-
 end

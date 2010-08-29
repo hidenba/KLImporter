@@ -19,6 +19,7 @@ describe KLImporter do
       @header = ['i', 'd', 't', 'd', 'n', "2","","","","","","3","","","","","""",]
       @line_data = [%w[task_id todo_name type detail name o o o o o 10 o o o o o 20]]
     end
+
     it "CSVが出力されていること" do 
       File.stub!(:open).and_return(StringIO.new)
       target = KLImporter.new(@header, @line_data, "2010/06")
@@ -32,9 +33,15 @@ describe KLImporter do
       line_data[1].should eql "todo_name"
       line_data[2].should eql "type"
       line_data[3].should eql "detail"
+<<<<<<< HEAD
       line_data[4].should eql "Wed Jun 02 10:00:00 +0900 2010"
       line_data[5].should eql "Wed Jun 02 10:30:00 +0900 2010"
+=======
+      line_data[4].should eql "2010-06-02T10:00:00+00:00"
+      line_data[5].should eql "2010-06-02T10:30:00+00:00"
+>>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
+
     it "ヘッダが出力されていること" do 
       File.stub!(:open).and_return(StringIO.new)
       target = KLImporter.new(@header, @line_data, "2010/06")
@@ -124,6 +131,7 @@ describe WorkRecord do
     before do 
       @target = WorkRecord.new([nil,nil,nil,nil,nil],@date)
     end    
+
     it "朝会に欠席していること" do @target.morning?.should be_false  end
     it "１限目に欠席していること" do @target.first?.should be_false  end
     it "２限目に欠席していること" do @target.second?.should be_false  end
@@ -136,6 +144,7 @@ describe WorkRecord do
     before do 
       @target = WorkRecord.new(['o'],@date)
     end    
+
     it "朝会に出席していること" do @target.morning?.should be_true  end
     it "１限目に欠席していること" do @target.first?.should be_false  end
     it "２限目に欠席していること" do @target.second?.should be_false  end
@@ -153,24 +162,38 @@ describe WorkRecord do
   end
 
   context ".work_time" do 
+
     it "開始と終了時刻が取得できていること" do 
       @target = WorkRecord.new(%w[o o o o o 10], @date)
       actual = @target.work_times
       actual.should have(6).worktime
     end
+
     it "朝会の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['o','','','','',''], @date)
       actual = @target.work_times
+<<<<<<< HEAD
       actual.first.start.to_s.should eql "Tue Jun 08 10:00:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
+=======
+      actual.first.start.to_s.should eql "2010-06-08T10:00:00+00:00"
+      actual.first.end.to_s.should eql "2010-06-08T10:30:00+00:00"
+>>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
+
     it "1コマ目の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['','o','','','',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
+<<<<<<< HEAD
       actual.first.start.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 12:30:00 +0900 2010"
+=======
+      actual.first.start.to_s.should eql "2010-06-08T10:30:00+00:00"
+      actual.first.end.to_s.should eql "2010-06-08T12:30:00+00:00"
+>>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
     end
+
     it "2コマ目の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['','','o','','',''], @date)
       actual = @target.work_times
@@ -178,6 +201,7 @@ describe WorkRecord do
       actual.first.start.to_s.should eql "Tue Jun 08 13:30:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 15:30:00 +0900 2010"
     end
+
     it "3コマ目の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['','','','o','',''], @date)
       actual = @target.work_times
@@ -185,6 +209,7 @@ describe WorkRecord do
       actual.first.start.to_s.should eql "Tue Jun 08 16:00:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 18:00:00 +0900 2010"
     end
+
     it "夕会の開始終了時刻が取得出来ていること" do 
       @target = WorkRecord.new(['','','','','o',''], @date)
       actual = @target.work_times
@@ -202,6 +227,7 @@ describe WorkRecord do
   end
 end  
 
+<<<<<<< HEAD
 describe KLTime do 
   before do 
     @date = Time.mktime(2010,6,8)
@@ -215,6 +241,8 @@ describe KLTime do
 end
 
 
+=======
+>>>>>>> c9da87aa3daa7a101455db925941918a183b87e8
 describe WorkContent do 
   context ".new" do 
     before do 
