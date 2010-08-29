@@ -68,6 +68,7 @@ class WorkRecord
     NAMES[:second]  = %w[13:30 15:30]
     NAMES[:third]   = %w[16:00 18:00]
     NAMES[:evening] = %w[18:00 18:30]
+    NAMES[:orver_time] = %w[18:30]
 
   attr_reader :date
   def initialize(record,date)
@@ -85,7 +86,8 @@ class WorkRecord
     times=[]
     NAMES.each do |k,v|
       if eval("#{k.to_s}?")
-        times << WorkTime.new(make_date_time(v.first),make_date_time(v.last)) 
+        e = k == :orver_time ? KLTime.orvertime(@date,v.last,orver_time) : KLTime.make_time(@date,v.last)
+        times << WorkTime.new(KLTime.make_time(@date,v.first), e) 
       end
     end
     times
@@ -95,15 +97,26 @@ class WorkRecord
   def add_method(sym, val)
     v = !val.nil? && !val.empty?
     instance_eval("def #{sym.to_s}?; #{v}; end")
+    instance_eval("def #{sym.to_s}; #{val}; end")
   end
-  def make_date_time(time_str) 
-    hh,mm = time_str.split(":")
-    DateTime.new(@date.year, @date.month, @date.day, hh.to_i, mm.to_i)
+end
+
+module KLTime
+  class << self
+    def make_time(date, time_str)
+      hh,mm = time_str.split(":")
+      Time.mktime(date.year, date.month, date.day, hh.to_i, mm.to_i)
+    end
+
+    def orvertime(date, time_str, orver_min)
+      dt = KLTime.make_time(date, time_str)
+      dt + (orver_min*60)
+    end
   end
 end
 
 module Splitter
-  RECORD_OFFSET = 5
+  RECORD_OFFSET = 6
   DATE_OFFSET = 5
   CONTENT_SIZE = 4
   class << self
