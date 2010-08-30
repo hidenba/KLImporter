@@ -145,6 +145,7 @@ if $0 == __FILE__
     opt.on('-y VAL:対象年を指定する') {|v| OPTS[:y] = v }
     opt.on('-m VAL:対象月を指定する') {|v| OPTS[:m] = v }
     opt.on('-o VAL:出力ファイルを指定する') {|v| OPTS[:o] = v }
+    opt.on('-n VAL:出力対象者を指定する（指定がない場合は全員出力）') {|v| OPTS[:n] = v }
     opt.parse!
     if OPTS.empty?
       puts opt.help
@@ -156,8 +157,10 @@ if $0 == __FILE__
   users = {}
   in_csv.each do |line|
     user_name = line[4]
-    users[user_name] ||= []
-    users[user_name] << line
+    if OPTS[:n].nil? || OPTS[:n] == user_name
+      users[user_name] ||= []
+      users[user_name] << line 
+    end
   end
   users.delete(nil)
 
