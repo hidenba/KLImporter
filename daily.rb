@@ -53,6 +53,7 @@ if $0 == __FILE__
     opt.on('-y VAL:対象年を指定する') {|v| OPTS[:y] = v }
     opt.on('-m VAL:対象月を指定する') {|v| OPTS[:m] = v }
     opt.on('-o VAL:出力ファイルを指定する') {|v| OPTS[:o] = v }
+    opt.on('-g VAL:業務コードを指定する') {|v| OPTS[:g] = v }
     opt.on('-n VAL:出力対象者を指定する（指定がない場合は全員出力）') {|v| OPTS[:n] = v }
     opt.parse!
     if OPTS.empty?
@@ -74,15 +75,15 @@ if $0 == __FILE__
 
   users.each do |user_name, csv_line|
     dl = Importer::Daily.new(in_csv.first, csv_line, "#{OPTS[:y]}/#{OPTS[:m]}")
-    dl.to_csv("#{OPTS[:o]}_to_esm(#{user_name})") do |d,s,e,t|
+    dl.to_csv("#{OPTS[:o]}_to_esm(#{user_name}).csv") do |d,s,e,t|
       if s.nil?
         [d.strftime("%Y/%m/%d"),WDAY[d.wday]]
       else
-        [d.strftime("%Y/%m/%d"),WDAY[d.wday],s.hour,s.min,e.hour,e.min,t.to_i,((t-t.to_i)*60).to_i]
+        [d.strftime("%Y/%m/%d"),WDAY[d.wday],"",s.hour,s.min,e.hour,e.min,"","","","","","",OPTS[:g],"",t.to_i,((t-t.to_i)*60).to_i]
       end
 
     end
-    dl.to_csv("#{OPTS[:o]}_to_is(#{user_name})") do |d,s,e,t|
+    dl.to_csv("#{OPTS[:o]}_to_is(#{user_name}).csv") do |d,s,e,t|
       if s.nil?
         [d.strftime("%d"),WDAY[d.wday]]
       else
