@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 require "kl_importer"
 
-describe KLImporter do 
+describe Importer::Kl do 
   context ".new" do 
     it "必要なコンテンツが生成されていること" do 
       header = ['i', 'd', 't', 'd', 'n', "2","","","","","","3","","","","","","4","","","","""",]
       line_data = [%w[task_id todo_name type detail name o o o o o 1 o o o o o 2],
                   %w[task_id todo_name type detail name o o o o o 3 o o o o o 4]]
-      actual = KLImporter.new(header, line_data, "2010/06")
+      actual = Importer::Kl.new(header, line_data, "2010/06")
       actual.contents.should have(2).content
       actual.contents.first.records.should have(2).record
       actual.contents.last.records.should have(2).record
@@ -22,7 +22,7 @@ describe KLImporter do
 
     it "CSVが出力されていること" do 
       File.stub!(:open).and_return(StringIO.new)
-      target = KLImporter.new(@header, @line_data, "2010/06")
+      target = Importer::Kl.new(@header, @line_data, "2010/06")
       csv_data =  target.to_csv("test.csv") do |c,t|
         [c.task_id,c.todo_name,c.type,c.detail,t.start.to_s,t.end.to_s]
       end
@@ -39,7 +39,7 @@ describe KLImporter do
 
     it "ヘッダが出力されていること" do 
       File.stub!(:open).and_return(StringIO.new)
-      target = KLImporter.new(@header, @line_data, "2010/06")
+      target = Importer::Kl.new(@header, @line_data, "2010/06")
       csv_data =  target.to_csv("test.csv", %w[a b c d])
       actual = csv_data.string.split("\n")
       actual.should have(1).lines
@@ -52,10 +52,10 @@ describe KLImporter do
   end
 end
 
-describe Splitter do
+describe Importer::Splitter do
   context ".split" do 
     it "コンテンツ部分とレコード部分が取得できていること" do 
-      actual = Splitter.split(%w[task_id todo_name type detail name M o o o o E M o o o o E])
+      actual = Importer::Splitter.split(%w[task_id todo_name type detail name M o o o o E M o o o o E])
       actual.first.should eql %w[task_id todo_name type detail]
       actual.last.should eql %w[M o o o o E M o o o o E]
     end
@@ -63,18 +63,18 @@ describe Splitter do
 
   context ".record" do 
     it "6カラムごとに取得できていること"  do 
-      actual = Splitter.record(%w[M 1 2 3 4 E MM 11 22 33 44 EE])
+      actual = Importer::Splitter.record(%w[M 1 2 3 4 E MM 11 22 33 44 EE])
       actual.should_not be_nil
       actual.should have(2).items
       actual.first.should == %w[M 1 2 3 4 E]
       actual.last.should == %w[MM 11 22 33 44 EE]
     end
     it "半端がある場合は切り捨てられること"  do 
-      actual = Splitter.record(%w[M 1 2 3 4 E MM 11 22 33 44 EE aa dd])
+      actual = Importer::Splitter.record(%w[M 1 2 3 4 E MM 11 22 33 44 EE aa dd])
       actual.should have(2).items
     end
     it "6カラムに満たない場合はからの配列が得られること"  do 
-      actual = Splitter.record(%w[M 1 2 3 4 ])
+      actual = Importer::Splitter.record(%w[M 1 2 3 4 ])
       actual.should be_empty
     end
   end
@@ -84,7 +84,7 @@ describe Splitter do
       @yymm = "2010/06"
     end
     it "日付の配列が取得できていること" do 
-      actual = Splitter.date(@yymm, ['i', 'd', 't', 'd', 'n', "2","","","","","","3","","","","","","4","","","","",""])
+      actual = Importer::Splitter.date(@yymm, ['i', 'd', 't', 'd', 'n', "2","","","","","","3","","","","","","4","","","","",""])
       actual[0].to_s.should eql "2010-06-02"
       actual[1].to_s.should eql "2010-06-03"
       actual[2].to_s.should eql "2010-06-04"
@@ -92,13 +92,14 @@ describe Splitter do
   end
 end
 
-describe WorkRecord do 
+describe Importer::WorkRecord do 
+  
   before do 
     @date = Date.parse("2010/06/08")
   end    
   context "すべてのコマに出席のばあい" do 
     before do 
-      @target = WorkRecord.new(%w[o o o o o 10],@date)
+      @target = Importer::WorkRecord.new(%w[o o o o o 10],@date)
     end    
     it "朝会に出席していること" do @target.morning?.should be_true  end
     it "１限目に出席していること" do @target.first?.should be_true  end
@@ -111,7 +112,7 @@ describe WorkRecord do
 
   context "すべてのコマに欠席のばあい" do 
     before do 
-      @target = WorkRecord.new(["","","","",""],@date)
+      @target = Importer::WorkRecord.new(["","","","",""],@date)
     end    
     it "朝会に欠席していること" do @target.morning?.should be_false  end
     it "１限目に欠席していること" do @target.first?.should be_false  end
@@ -124,7 +125,7 @@ describe WorkRecord do
 
   context "引数にnilのばあい" do 
     before do 
-      @target = WorkRecord.new([nil,nil,nil,nil,nil],@date)
+      @target = Importer::WorkRecord.new([nil,nil,nil,nil,nil],@date)
     end    
 
     it "朝会に欠席していること" do @target.morning?.should be_false  end
@@ -137,7 +138,7 @@ describe WorkRecord do
 
   context "朝会の分だけ入っていた場合" do 
     before do 
-      @target = WorkRecord.new(['o'],@date)
+      @target = Importer::WorkRecord.new(['o'],@date)
     end    
 
     it "朝会に出席していること" do @target.morning?.should be_true  end
@@ -151,28 +152,29 @@ describe WorkRecord do
 
   context ".date" do 
     before do 
-      @target = WorkRecord.new(%w[o o o o o 10], @date)
+      @target = Importer::WorkRecord.new(%w[o o o o o 10], @date)
     end    
     it "日付が取得できていること" do @target.date.should eql @date  end
   end
 
+
   context ".work_time" do 
 
     it "開始と終了時刻が取得できていること" do 
-      @target = WorkRecord.new(%w[o o o o o 10], @date)
+      @target = Importer::WorkRecord.new(%w[o o o o o 10], @date)
       actual = @target.work_times
       actual.should have(6).worktime
     end
 
     it "朝会の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['o','','','','',''], @date)
+      @target = Importer::WorkRecord.new(['o','','','','',''], @date)
       actual = @target.work_times
       actual.first.start.to_s.should eql "Tue Jun 08 10:00:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
     end
 
     it "1コマ目の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['','o','','','',''], @date)
+      @target = Importer::WorkRecord.new(['','o','','','',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
       actual.first.start.to_s.should eql "Tue Jun 08 10:30:00 +0900 2010"
@@ -180,7 +182,7 @@ describe WorkRecord do
     end
 
     it "2コマ目の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['','','o','','',''], @date)
+      @target = Importer::WorkRecord.new(['','','o','','',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
       actual.first.start.to_s.should eql "Tue Jun 08 13:30:00 +0900 2010"
@@ -188,7 +190,7 @@ describe WorkRecord do
     end
 
     it "3コマ目の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['','','','o','',''], @date)
+      @target = Importer::WorkRecord.new(['','','','o','',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
       actual.first.start.to_s.should eql "Tue Jun 08 16:00:00 +0900 2010"
@@ -196,41 +198,42 @@ describe WorkRecord do
     end
 
     it "夕会の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['','','','','o',''], @date)
+      @target = Importer::WorkRecord.new(['','','','','o',''], @date)
       actual = @target.work_times
       actual.should have(1).worktime
       actual.first.start.to_s.should eql "Tue Jun 08 18:00:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 18:30:00 +0900 2010"
     end
     it "残業の開始終了時刻が取得出来ていること" do 
-      @target = WorkRecord.new(['','','','','','35'], @date)
+      @target = Importer::WorkRecord.new(['','','','','','35'], @date)
       actual = @target.work_times
       actual.should have(1).worktime
       actual.first.start.to_s.should eql "Tue Jun 08 18:30:00 +0900 2010"
       actual.first.end.to_s.should eql "Tue Jun 08 19:05:00 +0900 2010"
     end
+
   end
 end  
 
-describe KLTime do 
+describe Importer::KLTime do 
   before do 
     @date = Time.mktime(2010,6,8)
   end
   context ".make_time" do
-    it { KLTime.make_time(@date, "18:30").to_s.should eql "Tue Jun 08 18:30:00 +0900 2010"}
+    it { Importer::KLTime.make_time(@date, "18:30").to_s.should eql "Tue Jun 08 18:30:00 +0900 2010"}
   end
   context ".orvertime" do
-    it { KLTime.orvertime(@date, "18:30",30).to_s.should eql "Tue Jun 08 19:00:00 +0900 2010"}
+    it { Importer::KLTime.orvertime(@date, "18:30",30).to_s.should eql "Tue Jun 08 19:00:00 +0900 2010"}
   end
 end
 
-describe WorkContent do 
+describe Importer::WorkContent do 
   context ".new" do 
     before do 
-      @t1 = WorkRecord.new(['t'],Date.new)
-      @t2 = WorkRecord.new(['t'],Date.new)
-      @records = [@t1, WorkRecord.new([],Date.new), @t2] 
-      @target = WorkContent.new(%w[taskID todoName type detail],@records)
+      @t1 = Importer::WorkRecord.new(['t'],Date.new)
+      @t2 = Importer::WorkRecord.new(['t'],Date.new)
+      @records = [@t1, Importer::WorkRecord.new([],Date.new), @t2] 
+      @target = Importer::WorkContent.new(%w[taskID todoName type detail],@records)
     end
     it "内容が保持されていること" do 
       @target.task_id.should eql 'taskID'
@@ -244,8 +247,8 @@ describe WorkContent do
       @target.records.last.should eql @t2
     end
     it "種類の変換が行われていること" do 
-      WorkContent::TYPE_TABLE.each do |k,v|
-        target = WorkContent.new(['taskID','todoName',k,'detail' ],@records)
+      Importer::WorkContent::TYPE_TABLE.each do |k,v|
+        target = Importer::WorkContent.new(['taskID','todoName',k,'detail' ],@records)
         target.type_code.should eql v
       end
     end
