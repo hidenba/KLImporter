@@ -75,7 +75,7 @@ if $0 == __FILE__
 
   users.each do |user_name, csv_line|
     dl = Importer::Daily.new(in_csv.first, csv_line, "#{OPTS[:y]}/#{OPTS[:m]}")
-    dl.to_csv("#{OPTS[:o]}_to_esm(#{user_name}).csv") do |d,s,e,t|
+    dl.to_csv("#{OPTS[:o]}_long(#{user_name}).csv") do |d,s,e,t|
       if s.nil?
         [d.strftime("%Y/%m/%d"),WDAY[d.wday]]
       else
@@ -83,7 +83,7 @@ if $0 == __FILE__
       end
 
     end
-    dl.to_csv("#{OPTS[:o]}_to_is(#{user_name}).csv") do |d,s,e,t|
+    dl.to_csv("#{OPTS[:o]}_short(#{user_name}).csv") do |d,s,e,t|
       if s.nil?
         [d.strftime("%d"),WDAY[d.wday]]
       else
